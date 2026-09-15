@@ -1,0 +1,19 @@
+import java.util.ArrayList;
+import java.util.List;
+
+public class ReportManager {
+
+    private List<CrimeReport> reports;
+
+    public ReportManager() {
+        reports = new ArrayList<>();
+    }
+
+    public void addReport(CrimeReport report) {
+        reports.add(report);
+    }
+
+    public List<CrimeReport> getReports() {
+        return reports;
+    }
+}
