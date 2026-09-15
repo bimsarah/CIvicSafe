@@ -1,0 +1,191 @@
+import javax.swing.*;
+import java.awt.*;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+
+public class CivicSafeApp extends JFrame {
+
+    private ReportManager reportManager;
+
+    private JComboBox<String> crimeType;
+    private JTextField location;
+    private JTextArea description;
+    private JTextArea reportDisplay;
+
+    public CivicSafeApp() {
+
+        reportManager = new ReportManager();
+
+        setTitle("CivicSafe - Crime Reporting");
+        setSize(850, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+
+        createGUI();
+    }
+
+    private void createGUI() {
+
+        JPanel mainPanel = new JPanel(new BorderLayout(15, 15));
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        JLabel title = new JLabel("CivicSafe Crime Reporting");
+        title.setFont(new Font("Arial", Font.BOLD, 28));
+
+        mainPanel.add(title, BorderLayout.NORTH);
+
+        JPanel form = new JPanel(new GridLayout(6, 2, 10, 10));
+
+        form.add(new JLabel("Crime Type:"));
+
+        crimeType = new JComboBox<>(new String[]{
+                "Theft",
+                "Assault",
+                "Vandalism",
+                "Fraud",
+                "Suspicious Activity",
+                "Other"
+        });
+
+        form.add(crimeType);
+
+        form.add(new JLabel("Location:"));
+
+        location = new JTextField();
+        form.add(location);
+
+        form.add(new JLabel("Description:"));
+
+        description = new JTextArea();
+        description.setLineWrap(true);
+        description.setWrapStyleWord(true);
+
+        form.add(new JScrollPane(description));
+
+        JButton submitButton = new JButton("Submit Report");
+        JButton viewButton = new JButton("View Reports");
+        JButton clearButton = new JButton("Clear");
+
+        form.add(submitButton);
+        form.add(clearButton);
+
+        mainPanel.add(form, BorderLayout.CENTER);
+
+        JPanel bottom = new JPanel();
+
+        bottom.add(viewButton);
+
+        mainPanel.add(bottom, BorderLayout.SOUTH);
+
+        submitButton.addActionListener(e -> submitReport());
+
+        clearButton.addActionListener(e -> clearForm());
+
+        viewButton.addActionListener(e -> viewReports());
+
+        add(mainPanel);
+    }
+
+    private void submitReport() {
+
+        String selectedCrime =
+                (String) crimeType.getSelectedItem();
+
+        String enteredLocation =
+                location.getText().trim();
+
+        String enteredDescription =
+                description.getText().trim();
+
+        if (enteredLocation.isEmpty() ||
+                enteredDescription.isEmpty()) {
+
+            JOptionPane.showMessageDialog(
+                    this,
+                    "Please enter a location and description.",
+                    "Missing Information",
+                    JOptionPane.WARNING_MESSAGE
+            );
+
+            return;
+        }
+
+        String id = "CS-" + System.currentTimeMillis();
+
+        String date = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(
+                        "yyyy-MM-dd HH:mm"
+                ));
+
+        CrimeReport report = new CrimeReport(
+                id,
+                selectedCrime,
+                enteredLocation,
+                enteredDescription,
+                date,
+                "Submitted"
+        );
+
+        reportManager.addReport(report);
+
+        JOptionPane.showMessageDialog(
+                this,
+                "Report submitted successfully!\n\nReport ID: " + id
+        );
+
+        clearForm();
+    }
+
+    private void viewReports() {
+
+        JFrame reportWindow = new JFrame("Submitted Reports");
+
+        reportDisplay = new JTextArea();
+        reportDisplay.setEditable(false);
+        reportDisplay.setFont(new Font("Monospaced", Font.PLAIN, 13));
+
+        if (reportManager.getReports().isEmpty()) {
+
+            reportDisplay.setText(
+                    "No crime reports have been submitted."
+            );
+
+        } else {
+
+            for (CrimeReport report :
+                    reportManager.getReports()) {
+
+                reportDisplay.append(
+                        report.toString()
+                                + "\n"
+                                + "----------------------------------\n"
+                );
+            }
+        }
+
+        reportWindow.add(
+                new JScrollPane(reportDisplay)
+        );
+
+        reportWindow.setSize(650, 500);
+        reportWindow.setLocationRelativeTo(this);
+        reportWindow.setVisible(true);
+    }
+
+    private void clearForm() {
+
+        crimeType.setSelectedIndex(0);
+        location.setText("");
+        description.setText("");
+    }
+
+    public static void main(String[] args) {
+
+        SwingUtilities.invokeLater(() -> {
+
+            CivicSafeApp app = new CivicSafeApp();
+
+            app.setVisible(true);
+        });
+    }
+}
